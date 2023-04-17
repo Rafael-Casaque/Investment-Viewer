@@ -26,5 +26,8 @@
     "react-dom": "18.2.0",
     "typescript": "5.0.4",
     "victory": "^36.6.8"
+  },
+  "devDependencies": {
+    "@types/bcrypt": "^5.0.0"
   }
 }
