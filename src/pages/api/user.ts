@@ -2,7 +2,7 @@ import type { NextApiRequest, NextApiResponse } from "next";
 import { MongoClient, ServerApiVersion } from "mongodb";
 import bcrypt from "bcrypt";
 import { User } from "../../types/user";
-import { uri } from "../../../credentials";
+import { auth, uri } from "../../../credentials";
 import nodemailer from "nodemailer";
 
 const client = new MongoClient(uri, {
@@ -11,6 +11,11 @@ const client = new MongoClient(uri, {
     strict: true,
     deprecationErrors: true,
   },
+});
+
+const transporter = nodemailer.createTransport({
+  service: "gmail",
+  auth: auth,
 });
 
 export default async function handler(
@@ -38,7 +43,7 @@ export default async function handler(
         validateEmail(email);
         validatePassword(password);
         const validateUser = await getUser(email);
-        if(validateUser) throw new Error('email já em uso')
+        if (validateUser) throw new Error("email já em uso");
         const user = await createUser(username, email, password, stocks);
         createUserCollection(user);
         res.send("user successfully created");
