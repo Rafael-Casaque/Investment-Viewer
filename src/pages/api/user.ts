@@ -23,12 +23,12 @@ export default async function handler(
         validateName(username);
         validateEmail(email);
         validatePassword(password);
+        const user = await createUser(username, email, password);
+        createUserCollection(user);
+        res.send("user successfully created");
       } catch (error: any) {
         res.status(400).send({ error: error.message });
       }
-      const user = await createUser(username, email, password);
-      createUserCollection(user);
-      res.send("user successfully created");
       break;
     default: // método não alocado
       res.status(405).end();
