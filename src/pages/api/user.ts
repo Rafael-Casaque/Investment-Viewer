@@ -3,6 +3,7 @@ import { MongoClient, ServerApiVersion } from "mongodb";
 import bcrypt from "bcrypt";
 import { User } from "../../types/user";
 import { uri } from "../../../credentials";
+import nodemailer from "nodemailer";
 
 const client = new MongoClient(uri, {
   serverApi: {
