@@ -2,8 +2,7 @@ import type { NextApiRequest, NextApiResponse } from "next";
 import { MongoClient, ServerApiVersion } from "mongodb";
 import bcrypt from "bcrypt";
 import { User } from "../../types/user";
-import { auth, uri } from "../../../credentials";
-import nodemailer from "nodemailer";
+import { uri } from "../../../credentials";
 
 const client = new MongoClient(uri, {
   serverApi: {
@@ -11,11 +10,6 @@ const client = new MongoClient(uri, {
     strict: true,
     deprecationErrors: true,
   },
-});
-
-const transporter = nodemailer.createTransport({
-  service: "gmail",
-  auth: auth,
 });
 
 export default async function handler(
@@ -89,7 +83,6 @@ const createUserCollection = async (user: User) => {
       email: user.email,
       password: user.password,
       stocks: user.stocks,
-      user,
     });
     console.log(`Inserted ${result.insertedId} document(s)`);
   } catch (err) {
