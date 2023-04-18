@@ -31,12 +31,15 @@ export default async function handler(
         res.status(400).send({ error: "Email não fornecido" });
         return;
       }
-      const code = generateRandomString(6);
+      const code = await getCode(userEmail);
+      if (code && code.expires.getTime() > new Date().getTime())
+        return res.status(200).send({ message: "o código já foi enviado" });
       try {
+        const code = generateRandomString(6);
         const validateUser = await getUser(userEmail);
         if (!validateUser) throw new Error("usuário não encontrado");
+        await sendEmailCode(userEmail, code);
         createCodeCollection(code, userEmail);
-        sendEmailCode(userEmail, code);
         res
           .status(200)
           .send({ message: "o código de recuperação foi enviado" });
@@ -45,6 +48,7 @@ export default async function handler(
       }
       break;
     case "POST":
+      const { email, confirmCode } = req.body;
       break;
     default: // método não alocado
       res.status(405).end();
@@ -127,4 +131,22 @@ const sendEmailCode = async (to: string, code: string) => {
   }
 };
 
-const validateRecoveryCode = (recoveryCode: string) => {};
+const validateRecoveryCode = (email: string, recoveryCode: string) => {
+  getUser(email);
+};
+
+const getCode = async (user: string) => {
+  try {
+    await client.connect();
+    const db = client.db("InvestmentViewer");
+    const codes = db.collection("codes");
+
+    const code = await codes.findOne({ user });
+    return code;
+  } catch (err) {
+    console.error(err);
+    throw new Error("Erro ao validar email");
+  } finally {
+    await client.close();
+  }
+};
