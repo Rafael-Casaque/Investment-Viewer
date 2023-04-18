@@ -3,7 +3,7 @@ import { MongoClient, ServerApiVersion } from "mongodb";
 import bcrypt from "bcrypt";
 import { auth, uri } from "../../../credentials";
 import nodemailer from "nodemailer";
-import cron from "node-cron";
+import jwt from "jsonwebtoken";
 
 const client = new MongoClient(uri, {
   serverApi: {
