@@ -36,6 +36,7 @@ export default async function handler(
       if (code && code.expires.getTime() > new Date().getTime())
         return res.status(200).send({ message: "o código já foi enviado" });
       try {
+        deleteExpiredCodes("codes");
         const code = generateRandomString(6);
         const validateUser = await getUser(userEmail);
         if (!validateUser) throw new Error("usuário não encontrado");
@@ -149,5 +150,19 @@ const getCode = async (user: string) => {
     throw new Error("Erro ao validar email");
   } finally {
     await client.close();
+  }
+};
+
+const deleteExpiredCodes = async (collectionName: string) => {
+  try {
+    await client.connect();
+    const db = client.db("InvestmentViewer");
+    const collection = db.collection(collectionName);
+
+    collection.deleteMany({ expires: { $lt: new Date() } });
+    return true;
+  } catch (err) {
+    console.error(err);
+    throw new Error("Erro ao fazer o delete");
   }
 };
