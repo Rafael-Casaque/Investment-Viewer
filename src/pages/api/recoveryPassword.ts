@@ -1,17 +1,8 @@
 import type { NextApiRequest, NextApiResponse } from "next";
-import { MongoClient, ServerApiVersion } from "mongodb";
 import { uri } from "../../../credentials";
 import { Utils } from "../services/Utils";
 import { UserDAOMongoDB } from "../repositories/UserDAOMongoDB";
 import { CodeDAOMongoDB } from "../repositories/CodeDAOMongoDB";
-
-const client = new MongoClient(uri, {
-  serverApi: {
-    version: ServerApiVersion.v1,
-    strict: true,
-    deprecationErrors: true,
-  },
-});
 
 export default async function handler(
   req: NextApiRequest,
