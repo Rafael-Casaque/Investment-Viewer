@@ -1,9 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import { MongoClient, ServerApiVersion } from "mongodb";
-import bcrypt from "bcrypt";
-import { auth, uri } from "../../../credentials";
-import nodemailer from "nodemailer";
-import jwt from "jsonwebtoken";
+import { uri } from "../../../credentials";
+import { Utils } from "../services/Utils";
 
 const client = new MongoClient(uri, {
   serverApi: {
@@ -11,11 +9,6 @@ const client = new MongoClient(uri, {
     strict: true,
     deprecationErrors: true,
   },
-});
-
-const transporter = nodemailer.createTransport({
-  service: "hotmail",
-  auth: auth,
 });
 
 export default async function handler(
@@ -37,10 +30,10 @@ export default async function handler(
         return res.status(200).send({ message: "o código já foi enviado" });
       try {
         deleteExpiredCodes("codes");
-        const code = generateRandomString(6);
+        const code = Utils.generateRandomString(6);
         const validateUser = await getUser(userEmail);
-        if (!validateUser) throw new Error("usuário não encontrado");
-        await sendEmailCode(userEmail, code);
+        if (!validateUser) throw new Error("usuário não encontrado");        
+        await Utils.sendEmail(userEmail, code);
         createCodeCollection(code, userEmail);
         res
           .status(200)
@@ -58,12 +51,6 @@ export default async function handler(
   }
 }
 
-const encryptedPassword = async (password: string) => {
-  const saltRounds = 10;
-  const hash = await bcrypt.hash(password, saltRounds);
-  return hash;
-};
-
 const getUser = async (email: string) => {
   try {
     await client.connect();
@@ -78,23 +65,6 @@ const getUser = async (email: string) => {
   } finally {
     await client.close();
   }
-};
-
-const validatePassword = (password: string) => {
-  const passwordRegex =
-    /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
-  if (passwordRegex.test(password)) return true;
-  else throw new Error("invalid password");
-};
-
-const generateRandomString = (length: number) => {
-  const charset = "abcdefghijklmnopqrstuvwxyz0123456789";
-  let result = "";
-  for (let i = 0; i < length; i++) {
-    const randomIndex = Math.floor(Math.random() * charset.length);
-    result += charset[randomIndex];
-  }
-  return result.toUpperCase();
 };
 
 const createCodeCollection = async (code: string, userEmail: string) => {
@@ -115,26 +85,6 @@ const createCodeCollection = async (code: string, userEmail: string) => {
   } finally {
     await client.close();
   }
-};
-
-const sendEmailCode = async (to: string, code: string) => {
-  const mailOptions = {
-    from: auth.user,
-    to,
-    subject: "e-mail de recuperação de senha",
-    html: `${code}`,
-  };
-
-  try {
-    const info = await transporter.sendMail(mailOptions);
-    console.log(`Email enviado para ${to}: ${info.messageId}`);
-  } catch (error) {
-    console.error(`Erro ao enviar email: ${error}`);
-  }
-};
-
-const validateRecoveryCode = (email: string, recoveryCode: string) => {
-  getUser(email);
 };
 
 const getCode = async (user: string) => {

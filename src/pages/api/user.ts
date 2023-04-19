@@ -1,8 +1,9 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import { MongoClient, ServerApiVersion } from "mongodb";
-import bcrypt from "bcrypt";
 import { User } from "../../types/user";
 import { uri } from "../../../credentials";
+import { Validation } from "../services/Validation";
+import { Utils } from "../services/Utils";
 
 const client = new MongoClient(uri, {
   serverApi: {
@@ -32,10 +33,10 @@ export default async function handler(
 
     case "POST":
       const { username, email, password, stocks } = req.body;
-      try {
-        validateName(username);
-        validateEmail(email);
-        validatePassword(password);
+      try {        
+        Validation.validateName(username);
+        Validation.validateEmail(email);
+        Validation.validatePassword(password);
         const validateUser = await getUser(email);
         if (validateUser) throw new Error("email já em uso");
         const user = await createUser(username, email, password, stocks);
@@ -51,12 +52,6 @@ export default async function handler(
   }
 }
 
-const encryptedPassword = async (password: string) => {
-  const saltRounds = 10;
-  const hash = await bcrypt.hash(password, saltRounds);
-  return hash;
-};
-
 const createUser = async (
   username: string,
   email: string,
@@ -66,7 +61,7 @@ const createUser = async (
   const user = {
     username: username,
     email: email,
-    password: await encryptedPassword(password),
+    password: await Utils.encryptedPassword(password,10),
     stocks: stocks,
   };
   return user;
@@ -90,25 +85,6 @@ const createUserCollection = async (user: User) => {
   } finally {
     await client.close();
   }
-};
-
-const validateEmail = (email: string) => {
-  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  if (emailRegex.test(email)) return true;
-  else throw new Error("invalid email");
-};
-
-const validatePassword = (password: string) => {
-  const passwordRegex =
-    /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
-  if (passwordRegex.test(password)) return true;
-  else throw new Error("invalid password");
-};
-
-const validateName = (name: string) => {
-  const nameRegex = /^\s*[a-zA-Z]{4,25}\s*$/;
-  if (nameRegex.test(name)) return true;
-  else throw new Error("invalid name");
 };
 
 const getUserStocks = async (email: string) => {
