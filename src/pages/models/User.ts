@@ -15,13 +15,12 @@ export class User {
     username: string,
     email: string,
     password: string,
-    stocks: Stock
+    stocks: string
   ) {
     this.username = username;
     this.email = email;
-    this.password = password;
-    this.stocks = [];
-    this.stocks.push(stocks);
+    this.password = password;    
+    this.stocks = JSON.parse(stocks);    
   }
   async getUser() {
     return {
