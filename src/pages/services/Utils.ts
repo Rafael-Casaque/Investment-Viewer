@@ -11,7 +11,11 @@ export class Utils {
 
   static sendEmail = async (to: string, code: string) => {
     const transporter = new NodeMailerTransporter("hotmail", auth);
-    transporter.send(to, code);
+    try {
+      await transporter.send(to, code);
+    } catch (error: any) {
+      throw new Error(error.message);
+    }
   };
 
   static generateRandomString = (length: number) => {
