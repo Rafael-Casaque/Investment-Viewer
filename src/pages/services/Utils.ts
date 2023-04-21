@@ -1,10 +1,19 @@
 import { auth } from "../../../credentials";
-import { BcryptPasswordEncryptor } from "./dependencies/BcryptPasswordEncryptor";
+import { BcryptPassword } from "./dependencies/BcryptPassword";
 import { NodeMailerTransporter } from "./dependencies/NodeMailerTransporter";
+import { JsonWebToken } from "./dependencies/JsonWebToken";
+
+type Payload = {
+  iss: string;
+  sub: string;
+  exp: number;
+  nbf: number;
+  jti: string;
+};
 
 export class Utils {
   static encryptedPassword = async (password: string, saltRounds: number) => {
-    const encrypt = new BcryptPasswordEncryptor();
+    const encrypt = new BcryptPassword();
     const encryptedPassword = await encrypt.encrypt(password, saltRounds);
     return encryptedPassword;
   };
@@ -26,5 +35,28 @@ export class Utils {
       result += charset[randomIndex];
     }
     return result.toUpperCase();
+  };
+
+  static createJWT = (email: string, privateKey: string) => {
+    const payload = {
+      iss: "https://investmentViewer.com",
+      sub: email,
+      exp: new Date(new Date().getTime() + 10 * 60000).getTime(),
+      nbf: new Date().getTime(),
+      jti: privateKey,
+    };
+
+    const JWT = new JsonWebToken(payload);
+
+    return JWT.createJWT();
+  };
+
+  static validateJWT = (jwt: string, privateKey: string) => {
+    try {
+      JsonWebToken.validateJWT(jwt, privateKey);
+      return true;
+    } catch (error: any) {
+      throw new Error(error.message);
+    }
   };
 }
