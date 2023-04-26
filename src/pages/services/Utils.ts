@@ -41,7 +41,7 @@ export class Utils {
     const payload = {
       iss: "https://investmentViewer.com",
       sub: email,
-      exp: new Date(new Date().getTime() + 10 * 60000).getTime(),
+      exp: new Date(new Date().getTime() + .25 * 60000).getTime(),
       nbf: new Date().getTime(),
       jti: privateKey,
     };
@@ -51,9 +51,9 @@ export class Utils {
     return JWT.createJWT();
   };
 
-  static validateJWT = (jwt: string, privateKey: string) => {
+  static validateJWT = (jwt: string) => {
     try {
-      JsonWebToken.validateJWT(jwt, privateKey);
+      JsonWebToken.validateJWT(jwt);
       return true;
     } catch (error: any) {
       throw new Error(error.message);
