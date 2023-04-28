@@ -41,7 +41,7 @@ export class Utils {
     const payload = {
       iss: "https://investmentViewer.com",
       sub: email,
-      exp: new Date(new Date().getTime() + .25 * 60000).getTime(),
+      exp: new Date(new Date().getTime() + 15 * 60000).getTime(),
       nbf: new Date().getTime(),
       jti: privateKey,
     };

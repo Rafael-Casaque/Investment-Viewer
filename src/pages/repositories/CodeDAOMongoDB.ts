@@ -41,13 +41,11 @@ export class CodeDAOMongoDB
       await this.client.disconnect();
     }
   }
-  async deleteExpiredCodes(
-    collectionName: string
-  ): Promise<true | WithId<Document> | null> {
+  async deleteExpiredCodes(): Promise<true | WithId<Document> | null> {
     try {
       await this.client.connect();
       const db = this.client.collection("InvestmentViewer");
-      const collection = db.collection(collectionName);
+      const collection = db.collection('codes');
 
       collection.deleteMany({ expires: { $lt: new Date() } });
       return true;

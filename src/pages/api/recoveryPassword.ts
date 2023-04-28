@@ -24,13 +24,13 @@ export default async function handler(
         return res.status(200).send({ message: "o código já foi enviado" });
       try {
         const CodeDB = new CodeDAOMongoDB(uri);
-        await CodeDB.deleteExpiredCodes("codes");
+        await CodeDB.deleteExpiredCodes();
         const code = Utils.generateRandomString(6);
         const UserDB = new UserDAOMongoDB(uri);
         const validateUser = await UserDB.getUser(userEmail);
         if (!validateUser) throw new Error("usuário não encontrado");
         await Utils.sendEmail(userEmail, code);
-        const expires = new Date(new Date().getTime() + 10 * 60000);
+        const expires = new Date(new Date().getTime() + 15 * 60000);
         CodeDB.createCode(code, userEmail, expires);
         res
           .status(200)
@@ -41,6 +41,17 @@ export default async function handler(
       break;
     case "POST":
       const { email, confirmCode } = req.body;
+      try {
+        const db = new CodeDAOMongoDB(uri);
+        await db.deleteExpiredCodes();
+        const code = await db.getCode(email);        
+        if (!code) throw new Error("código não encontrado ou expirado!");
+        if (code && code.value !== confirmCode.toUpperCase()) throw new Error("os códigos não coincidem!");
+        const jwt = Utils.createJWT(email, confirmCode);
+        res.status(200).json({ token: jwt });
+      } catch (error: any) {
+        res.status(403).send({ error: error.message });
+      }
       break;
     default: // método não alocado
       res.status(405).end();
