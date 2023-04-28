@@ -47,7 +47,7 @@ export default async function handler(
         const code = await db.getCode(email);        
         if (!code) throw new Error("código não encontrado ou expirado!");
         if (code && code.value !== confirmCode.toUpperCase()) throw new Error("os códigos não coincidem!");
-        const jwt = Utils.createJWT(email, confirmCode);
+        const jwt = Utils.createJWT(email, confirmCode , new Date(new Date().getTime() + 15 * 60000).getTime());
         res.status(200).json({ token: jwt });
       } catch (error: any) {
         res.status(403).send({ error: error.message });

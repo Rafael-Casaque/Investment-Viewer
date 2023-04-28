@@ -18,6 +18,11 @@ export class Utils {
     return encryptedPassword;
   };
 
+  static decriptedPassword = async (password: string, hash: string) => {
+    const decrypt = new BcryptPassword();
+    return await decrypt.decrypt(password, hash);
+  };
+
   static sendEmail = async (to: string, code: string) => {
     const transporter = new NodeMailerTransporter("hotmail", auth);
     try {
@@ -37,11 +42,11 @@ export class Utils {
     return result.toUpperCase();
   };
 
-  static createJWT = (email: string, privateKey: string) => {
+  static createJWT = (email: string, privateKey: string, expires: number) => {
     const payload = {
       iss: "https://investmentViewer.com",
       sub: email,
-      exp: new Date(new Date().getTime() + 15 * 60000).getTime(),
+      exp: expires,
       nbf: new Date().getTime(),
       jti: privateKey,
     };

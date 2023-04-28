@@ -33,7 +33,7 @@ export default async function handler(
         const validateUser = await db.getUser(email);
         if (validateUser) throw new Error("email já em uso");
         const user = new User(username, email, password, stocks);       
-        await db.createUser(user);
+        await db.createUser(await user.getUser());
         res.send("user successfully created");
       } catch (error: any) {
         res.status(400).send({ error: error.message });
