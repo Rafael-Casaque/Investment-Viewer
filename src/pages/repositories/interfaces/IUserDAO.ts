@@ -14,4 +14,6 @@ export interface IUserDAO<T> {
   createUser(user: User): Promise<T>;
   getUser(email: string): Promise<T | null>;
   getUserStocks(email: string): Promise<T[]>;
+  setUserStocks(email: string, stocks: string): Promise<boolean>;
+  setUserPassword(email: string, password: string): Promise<boolean>;
 }

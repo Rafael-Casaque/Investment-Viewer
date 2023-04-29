@@ -3,8 +3,8 @@ import { MongoDBConnectionFactory } from "../services/dependencies/MongoDBConnec
 import { IUserDAO } from "./interfaces/IUserDAO";
 
 type Stock = {
-    stockName: string,
-    amount: number,
+  stockName: string,
+  amount: number,
 }
 
 type User = {
@@ -55,22 +55,50 @@ export class UserDAOMongoDB implements IUserDAO<WithId<Document> | void> {
   }
   async getUserStocks(email: string): Promise<void[]> {
     try {
-        await this.client.connect();
-        const db = this.client.collection("InvestmentViewer");
-        const users = db.collection("users");
-    
-        const user = await users.findOne({ email });
-    
-        if (!user) {
-          throw new Error("Usuário não encontrado");
-        }
-    
-        return user.stocks;
-      } catch (err) {
-        console.error(err);
-        throw new Error("Erro ao recuperar os stocks do usuário");
-      } finally {
-        await this.client.disconnect();
+      await this.client.connect();
+      const db = this.client.collection("InvestmentViewer");
+      const users = db.collection("users");
+
+      const user = await users.findOne({ email });
+
+      if (!user) {
+        throw new Error("Usuário não encontrado");
       }
+
+      return user.stocks;
+    } catch (err) {
+      console.error(err);
+      throw new Error("Erro ao recuperar os stocks do usuário");
+    } finally {
+      await this.client.disconnect();
+    }
+  }
+
+  async setUserStocks(email: string, stocks: string): Promise<boolean> {
+    try {
+      await this.client.connect();
+      const db = this.client.collection("InvestmentViewer");
+      const users = db.collection("users");
+      await users.updateOne({ email: email }, [
+        { $set: { stocks: JSON.parse(stocks) } }
+      ]);
+      return true
+    } catch (error: any) {
+      throw new Error(error.message)
+    }
+  }
+
+  async setUserPassword(email: string, password: string): Promise<boolean> {
+    try {
+      await this.client.connect();
+      const db = this.client.collection("InvestmentViewer");
+      const users = db.collection("users");
+      await users.updateOne({ email: email }, [
+        { $set: { password: password } }
+      ]);
+      return true
+    } catch (error: any) {
+      throw new Error(error.message)
+    }
   }
 }

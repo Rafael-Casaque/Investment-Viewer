@@ -1,5 +1,5 @@
 import { VictoryPie } from "victory-pie";
-import { Stock } from "../types/stock";
+import { Stock } from "./types/stock";
 import { ColorScalePropType } from "victory";
 import { Flex, Text } from "@chakra-ui/react";
 import { useEffect, useState } from "react";

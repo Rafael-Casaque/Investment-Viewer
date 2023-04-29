@@ -4,7 +4,7 @@ import { VictoryLabel } from "victory";
 import { VictoryChart } from "victory-chart";
 import { VictoryBar } from "victory-bar";
 import { VictoryAxis } from "victory-axis";
-import { StockBars } from "../types/stock";
+import { StockBars } from "./types/stock";
 
 interface StackedBarsProps {
   participation: StockBars[];

@@ -3,6 +3,8 @@ import { uri } from "../../../credentials";
 import { Utils } from "../services/Utils";
 import { UserDAOMongoDB } from "../repositories/UserDAOMongoDB";
 import { CodeDAOMongoDB } from "../repositories/CodeDAOMongoDB";
+import authentication from "./authentication";
+import { Validation } from "../services/Validation";
 
 export default async function handler(
   req: NextApiRequest,
@@ -44,13 +46,29 @@ export default async function handler(
       try {
         const db = new CodeDAOMongoDB(uri);
         await db.deleteExpiredCodes();
-        const code = await db.getCode(email);        
+        const code = await db.getCode(email);
         if (!code) throw new Error("código não encontrado ou expirado!");
         if (code && code.value !== confirmCode.toUpperCase()) throw new Error("os códigos não coincidem!");
-        const jwt = Utils.createJWT(email, confirmCode , new Date(new Date().getTime() + 15 * 60000).getTime());
+        const jwt = Utils.createJWT(email, confirmCode, new Date(new Date().getTime() + 15 * 60000).getTime());
         res.status(200).json({ token: jwt });
       } catch (error: any) {
         res.status(403).send({ error: error.message });
+      }
+      break;
+    case "PUT":
+      try {
+        if (!await authentication(req, res)) throw new Error('token invalido')
+        const { email, newPassword , confirmNewPassword } = req.body;
+        Validation.validatePassword(newPassword);
+        if (!newPassword || !confirmNewPassword || !email) throw new Error('parametros ausentes')
+        if (newPassword !== confirmNewPassword) throw new Error('as senhas não coincidem')
+        const db = new UserDAOMongoDB(uri)
+        const user = await db.getUser(email);
+        if (!user) throw new Error('email não cadastrado!')        
+        await db.setUserPassword(email, newPassword)        
+        res.status(200).send({ message: 'senha atualizada com sucesso' })
+      } catch (error: any) {
+        res.status(403).send({ error: error.message })
       }
       break;
     default: // método não alocado
